@@ -1,0 +1,467 @@
+{
+  "asyncapi": "3.0.0",
+  "info": {
+    "title": "Pairiquium Matchmaking WebSocket API",
+    "version": "1.0.0",
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0"
+    },
+    "description": "The real-time protocol between a game client and Pairiquium.\n\n**Connecting:** your backend mints a ticket (see the OpenAPI document), then the client opens `<wsEndpoint>?ticket=<ticket>`. Tickets are single-use and expire after 300 seconds, so request a new one for every connection attempt, including reconnects.\n\n**Envelope:** every message is a JSON text frame with an `action` field. Client messages carry extra data in `payload`; server messages carry it in `data`.\n\n**Perspective:** operations are described from the Pairiquium server's point of view. `receive` means the client sends it; `send` means the client receives it.\n\n**Compatibility:** new optional fields may be added to any message. Ignore fields you don't recognise.\n\n**Reconnecting:** if the connection drops mid-search the server holds the search for about 30 seconds. Reconnect with a fresh ticket and send `begin_search` for the same game mode to resume it."
+  },
+  "servers": {
+    "regional": {
+      "host": "ws.{region}.pairiquium.com",
+      "protocol": "wss",
+      "description": "Use the `wsEndpoint` returned with the ticket rather than constructing this yourself.",
+      "variables": {
+        "region": {
+          "description": "Region the ticket is locked to.",
+          "examples": [
+            "eu-west-2",
+            "us-east-1"
+          ]
+        }
+      }
+    }
+  },
+  "channels": {
+    "matchmaking": {
+      "address": "/",
+      "description": "The single WebSocket channel carrying all matchmaking messages.",
+      "messages": {
+        "beginSearch": {
+          "$ref": "#/components/messages/beginSearch"
+        },
+        "heartbeat": {
+          "$ref": "#/components/messages/heartbeat"
+        },
+        "cancelSearch": {
+          "$ref": "#/components/messages/cancelSearch"
+        },
+        "pong": {
+          "$ref": "#/components/messages/pong"
+        },
+        "matchFound": {
+          "$ref": "#/components/messages/matchFound"
+        },
+        "closeConnection": {
+          "$ref": "#/components/messages/closeConnection"
+        },
+        "searchSuperseded": {
+          "$ref": "#/components/messages/searchSuperseded"
+        },
+        "error": {
+          "$ref": "#/components/messages/error"
+        },
+        "ping": {
+          "$ref": "#/components/messages/ping"
+        }
+      },
+      "bindings": {
+        "ws": {
+          "method": "GET",
+          "query": {
+            "type": "object",
+            "properties": {
+              "ticket": {
+                "type": "string",
+                "description": "Ticket from `POST /v1/tickets`."
+              }
+            },
+            "required": [
+              "ticket"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "operations": {
+    "beginSearch": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/beginSearch"
+        }
+      ]
+    },
+    "heartbeat": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/heartbeat"
+        }
+      ]
+    },
+    "cancelSearch": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/cancelSearch"
+        }
+      ]
+    },
+    "pong": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/pong"
+        }
+      ]
+    },
+    "matchFound": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/matchFound"
+        }
+      ]
+    },
+    "closeConnection": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/closeConnection"
+        }
+      ]
+    },
+    "searchSuperseded": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/searchSuperseded"
+        }
+      ]
+    },
+    "error": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/error"
+        }
+      ]
+    },
+    "ping": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/ping"
+        }
+      ]
+    }
+  },
+  "components": {
+    "messages": {
+      "beginSearch": {
+        "name": "begin_search",
+        "title": "Begin search",
+        "summary": "Start searching for a match in a game mode.",
+        "description": "If the same player already has a search in this game mode on another connection, the new connection takes it over: a search that dropped within the last ~30 seconds resumes with its original search time, and a still-connected older connection receives `SEARCH_SUPERSEDED` and is closed. For ping-based game modes the server replies with `PING` first and the search starts once you answer with `pong`.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "begin_search"
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "gameMode": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "gameMode"
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "payload"
+            ]
+          }
+        }
+      },
+      "heartbeat": {
+        "name": "heartbeat",
+        "title": "Heartbeat",
+        "summary": "Keep an active search alive.",
+        "description": "Searches expire after 3 minutes without a heartbeat. Send one periodically while searching.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "heartbeat"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          }
+        }
+      },
+      "cancelSearch": {
+        "name": "cancel_search",
+        "title": "Cancel search",
+        "summary": "Stop the current search.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "cancel_search"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          }
+        }
+      },
+      "pong": {
+        "name": "pong",
+        "title": "Pong",
+        "summary": "Reply to a server `PING`.",
+        "description": "Echo the `correlationId` from the `PING` and include the `gameMode`. Reply immediately: round-trip time is measured by the server from its own send time and is used for ping-based matching. The server gives up on a ping check after 10 seconds.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "pong"
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "correlationId": {
+                    "type": "string"
+                  },
+                  "gameMode": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "correlationId",
+                  "gameMode"
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "payload"
+            ]
+          }
+        }
+      },
+      "matchFound": {
+        "name": "MATCH_FOUND",
+        "title": "Match found",
+        "summary": "A match was made for this player.",
+        "description": "Carries the `matchId` and the player's `team`. It does not carry server connection details: your backend receives the match webhook with the same `matchId` and is responsible for getting players to the game server.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "MATCH_FOUND"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "metadata": {
+                    "type": "object",
+                    "properties": {
+                      "matchId": {
+                        "type": "string"
+                      },
+                      "team": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "required": [
+                      "matchId",
+                      "team"
+                    ]
+                  }
+                },
+                "required": [
+                  "metadata"
+                ]
+              }
+            },
+            "required": [
+              "action"
+            ]
+          }
+        }
+      },
+      "closeConnection": {
+        "name": "CLOSE_CONNECTION",
+        "title": "Close connection",
+        "summary": "The server is about to close this connection.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "CLOSE_CONNECTION"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          }
+        }
+      },
+      "searchSuperseded": {
+        "name": "SEARCH_SUPERSEDED",
+        "title": "Search superseded",
+        "summary": "The same player started a search from a newer connection; this connection is closed.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "SEARCH_SUPERSEDED"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          }
+        }
+      },
+      "error": {
+        "name": "ERROR",
+        "title": "Error",
+        "summary": "Something went wrong handling a client message.",
+        "description": "Some codes are terminal and the server closes the connection after sending them: `BILLING_ACCESS_DENIED`, `TOKEN_QUOTA_EXCEEDED`, `WAITLIST_ACCESS_DENIED`, `PLAYER_ATTRIBUTE_REQUIRED`. Others (for example `GAME_MODE_NOT_FOUND`, `GAME_MODE_DISABLED`, `STALE_PONG`, `INVALID_MESSAGE`, `INTERNAL_ERROR`) leave the connection open.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "ERROR"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "details": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {}
+                  }
+                },
+                "required": [
+                  "code",
+                  "message"
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "data"
+            ]
+          }
+        }
+      },
+      "ping": {
+        "name": "PING",
+        "title": "Ping check",
+        "summary": "Asks the client to reply with `pong` so latency can be measured.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "PING"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "correlationId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "correlationId"
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "data"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

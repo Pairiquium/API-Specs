@@ -1,0 +1,254 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Pairiquium Integration API",
+    "version": "1.0.0",
+    "license": {
+      "name": "Apache 2.0",
+      "identifier": "Apache-2.0"
+    },
+    "description": "The HTTP surface a game backend integrates with: minting a matchmaking ticket, and the webhook Pairiquium calls when a match is made. The real-time client protocol is described separately in the AsyncAPI document."
+  },
+  "servers": [
+    {
+      "url": "https://tickets.pairiquium.com",
+      "description": "Latency-routed to the nearest region. Tickets can still be minted for any active region via `preferredRegion`."
+    }
+  ],
+  "paths": {
+    "/v1/tickets": {
+      "post": {
+        "operationId": "generateTicket",
+        "summary": "Mint a matchmaking ticket for a player",
+        "description": "Call this from **your backend** after you have authenticated the player. Never call it from a game client: it requires your secret API key. Hand the returned `ticket` and `wsEndpoint` to the client, which connects to `wsEndpoint` with `?ticket=<ticket>`.\n\nTickets are single-use, expire after 300 seconds, and are locked to one region. Mint a new ticket for every connection attempt, including reconnects.\n\nRequires an API key with the `tickets:create` scope.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateTicketRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ticket minted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateTicketResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON, failed validation, or `preferredRegion` is not an active region.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing/invalid API key or missing scope (body is `{\"message\": \"Forbidden\"}` from the gateway), or the tenant is on the signup waitlist (body is `{\"error\": \"...\"}`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error. Safe to retry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {
+    "matchFound": {
+      "post": {
+        "operationId": "matchFoundWebhook",
+        "security": [],
+        "summary": "A match has been made",
+        "description": "Pairiquium sends this to the `NotificationWebhook` URL configured on the game mode when a match is made. Use it to allocate or select a game server, then deliver connection details to the players.\n\n- Respond with a `2xx` status within 5 seconds. Any other status, or a timeout, is treated as a failure and retried.\n- Delivery is at-least-once. De-duplicate on `matchId`.\n- The request carries no body-signing header yet; do not treat it as authenticated on its own.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MatchWebhookPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Acknowledged. Any 2xx status is accepted; the response body is ignored."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-MaaS-API-Key",
+        "description": "Your secret API key. Keep it on your backend; never ship it in a game client."
+      }
+    },
+    "schemas": {
+      "GenerateTicketRequest": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Your identifier for the player. Becomes the participant `UserId` in match webhooks."
+          },
+          "attrs": {
+            "description": "Player attributes used by game modes that match on them.",
+            "type": "object",
+            "properties": {
+              "mmr": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "karma": {
+                "type": "integer",
+                "minimum": -1000,
+                "maximum": 1000
+              }
+            }
+          },
+          "preferredRegion": {
+            "description": "Region to lock the ticket to. Defaults to the region that handled the request.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "userId"
+        ]
+      },
+      "GenerateTicketResponse": {
+        "type": "object",
+        "properties": {
+          "ticket": {
+            "type": "string",
+            "description": "Single-use, short-lived, region-locked JWT. Pass it to the client."
+          },
+          "wsEndpoint": {
+            "type": "string",
+            "description": "WebSocket endpoint the ticket is valid for."
+          }
+        },
+        "required": [
+          "ticket",
+          "wsEndpoint"
+        ]
+      },
+      "ApiErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "details": {
+            "description": "Per-field validation messages, on 400 responses.",
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "MatchWebhookPayload": {
+        "type": "object",
+        "properties": {
+          "gameMode": {
+            "type": "string"
+          },
+          "matchId": {
+            "type": "string"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "UserId": {
+                  "type": "string",
+                  "description": "The `userId` supplied when the ticket was generated."
+                },
+                "SearchDurationSeconds": {
+                  "type": "number",
+                  "description": "How long this player was searching before the match was made."
+                },
+                "Team": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991,
+                  "description": "Zero-based team index."
+                },
+                "Mmr": {
+                  "description": "Present when the game mode matches on MMR.",
+                  "type": "number"
+                },
+                "Ping": {
+                  "description": "Measured round-trip time in ms; present when the game mode matches on ping.",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "UserId",
+                "SearchDurationSeconds",
+                "Team"
+              ]
+            }
+          }
+        },
+        "required": [
+          "gameMode",
+          "matchId",
+          "participants"
+        ]
+      }
+    }
+  }
+}
