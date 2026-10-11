@@ -388,7 +388,7 @@
         "name": "ERROR",
         "title": "Error",
         "summary": "Something went wrong handling a client message.",
-        "description": "Some codes are terminal and the server closes the connection after sending them: `BILLING_ACCESS_DENIED`, `TOKEN_QUOTA_EXCEEDED`, `WAITLIST_ACCESS_DENIED`, `PLAYER_ATTRIBUTE_REQUIRED`. Others (for example `GAME_MODE_NOT_FOUND`, `GAME_MODE_DISABLED`, `STALE_PONG`, `INVALID_MESSAGE`, `INTERNAL_ERROR`) leave the connection open.",
+        "description": "Some codes are terminal and the server closes the connection after sending them: `BILLING_ACCESS_DENIED`, `TOKEN_QUOTA_EXCEEDED`, `WAITLIST_ACCESS_DENIED`, `PLAYER_ATTRIBUTE_REQUIRED`. Others (for example `GAME_MODE_NOT_FOUND`, `GAME_MODE_DISABLED`, `STALE_PONG`, `INVALID_MESSAGE`, `INTERNAL_ERROR`) leave the connection open. `TOKEN_QUOTA_EXCEEDED` means the tenant has used its matched player allowance for the current billing cycle: new searches are rejected, while players already in the queue and matches already made are unaffected.",
         "contentType": "application/json",
         "payload": {
           "schemaFormat": "application/schema+json;version=draft-07",
