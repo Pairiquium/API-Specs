@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Pairiquium Integration API",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "license": {
       "name": "Apache 2.0",
       "identifier": "Apache-2.0"
@@ -57,8 +57,23 @@
               }
             }
           },
+          "401": {
+            "description": "No `X-MaaS-API-Key` header was sent. The body is `{\"message\": \"Unauthorized\"}`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "403": {
-            "description": "Missing/invalid API key or missing scope (body is `{\"message\": \"Forbidden\"}` from the gateway), or the tenant is on the signup waitlist (body is `{\"error\": \"...\"}`).",
+            "description": "The API key is not valid (body `{\"message\": \"Forbidden\"}`), does not have the `tickets:create` scope (body `{\"error\": \"Forbidden\", \"message\": \"...\"}`), or the tenant is on the signup waitlist (body `{\"error\": \"...\"}`). The body shape depends on which check failed, so rely on the status code.",
             "content": {
               "application/json": {
                 "schema": {

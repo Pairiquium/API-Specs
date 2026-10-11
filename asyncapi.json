@@ -2,7 +2,7 @@
   "asyncapi": "3.0.0",
   "info": {
     "title": "Pairiquium Matchmaking WebSocket API",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "license": {
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0"
