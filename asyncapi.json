@@ -2,7 +2,7 @@
   "asyncapi": "3.0.0",
   "info": {
     "title": "Pairiquium Matchmaking WebSocket API",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "license": {
       "name": "Apache 2.0",
       "url": "https://www.apache.org/licenses/LICENSE-2.0"
@@ -42,6 +42,30 @@
         "pong": {
           "$ref": "#/components/messages/pong"
         },
+        "createParty": {
+          "$ref": "#/components/messages/createParty"
+        },
+        "joinParty": {
+          "$ref": "#/components/messages/joinParty"
+        },
+        "leaveParty": {
+          "$ref": "#/components/messages/leaveParty"
+        },
+        "kickMember": {
+          "$ref": "#/components/messages/kickMember"
+        },
+        "promoteLeader": {
+          "$ref": "#/components/messages/promoteLeader"
+        },
+        "inviteToParty": {
+          "$ref": "#/components/messages/inviteToParty"
+        },
+        "acceptInvite": {
+          "$ref": "#/components/messages/acceptInvite"
+        },
+        "declineInvite": {
+          "$ref": "#/components/messages/declineInvite"
+        },
         "matchFound": {
           "$ref": "#/components/messages/matchFound"
         },
@@ -51,11 +75,26 @@
         "searchSuperseded": {
           "$ref": "#/components/messages/searchSuperseded"
         },
+        "searchStarted": {
+          "$ref": "#/components/messages/searchStarted"
+        },
         "error": {
           "$ref": "#/components/messages/error"
         },
         "ping": {
           "$ref": "#/components/messages/ping"
+        },
+        "partyUpdate": {
+          "$ref": "#/components/messages/partyUpdate"
+        },
+        "partyLeft": {
+          "$ref": "#/components/messages/partyLeft"
+        },
+        "partySearchCancelled": {
+          "$ref": "#/components/messages/partySearchCancelled"
+        },
+        "partyInvite": {
+          "$ref": "#/components/messages/partyInvite"
         }
       },
       "bindings": {
@@ -122,6 +161,94 @@
         }
       ]
     },
+    "createParty": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/createParty"
+        }
+      ]
+    },
+    "joinParty": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/joinParty"
+        }
+      ]
+    },
+    "leaveParty": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/leaveParty"
+        }
+      ]
+    },
+    "kickMember": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/kickMember"
+        }
+      ]
+    },
+    "promoteLeader": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/promoteLeader"
+        }
+      ]
+    },
+    "inviteToParty": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/inviteToParty"
+        }
+      ]
+    },
+    "acceptInvite": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/acceptInvite"
+        }
+      ]
+    },
+    "declineInvite": {
+      "action": "receive",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/declineInvite"
+        }
+      ]
+    },
     "matchFound": {
       "action": "send",
       "channel": {
@@ -155,6 +282,17 @@
         }
       ]
     },
+    "searchStarted": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/searchStarted"
+        }
+      ]
+    },
     "error": {
       "action": "send",
       "channel": {
@@ -176,6 +314,50 @@
           "$ref": "#/channels/matchmaking/messages/ping"
         }
       ]
+    },
+    "partyUpdate": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/partyUpdate"
+        }
+      ]
+    },
+    "partyLeft": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/partyLeft"
+        }
+      ]
+    },
+    "partySearchCancelled": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/partySearchCancelled"
+        }
+      ]
+    },
+    "partyInvite": {
+      "action": "send",
+      "channel": {
+        "$ref": "#/channels/matchmaking"
+      },
+      "messages": [
+        {
+          "$ref": "#/channels/matchmaking/messages/partyInvite"
+        }
+      ]
     }
   },
   "components": {
@@ -184,7 +366,7 @@
         "name": "begin_search",
         "title": "Begin search",
         "summary": "Start searching for a match in a game mode.",
-        "description": "If the same player already has a search in this game mode on another connection, the new connection takes it over: a search that dropped within the last ~30 seconds resumes with its original search time, and a still-connected older connection receives `SEARCH_SUPERSEDED` and is closed. For ping-based game modes the server replies with `PING` first and the search starts once you answer with `pong`.",
+        "description": "If the same player already has a search in this game mode on another connection, the new connection takes it over: a search that dropped within the last ~30 seconds resumes with its original search time, and a still-connected older connection receives `SEARCH_SUPERSEDED` and is closed. For ping-based game modes the server replies with `PING` first and the search starts once you answer with `pong`. If the player is in a party, only the party leader can begin a search: it queues the whole party at once (every member needs the matching attribute for the game mode, and the game mode must have parties enabled). For ping-based game modes the server pings every member: each receives a `PING` to answer with `pong`, the party's status is `STARTING` meanwhile, and the search is queued (`SEARCH_STARTED`) once every member has answered, rated by its slowest member. If a member doesn't answer within 10 seconds the check expires with no further message; send `begin_search` again.",
         "contentType": "application/json",
         "payload": {
           "schemaFormat": "application/schema+json;version=draft-07",
@@ -240,6 +422,7 @@
         "name": "cancel_search",
         "title": "Cancel search",
         "summary": "Stop the current search.",
+        "description": "If the player is in a party, only the party leader can cancel, and it stops the search for the whole party.",
         "contentType": "application/json",
         "payload": {
           "schemaFormat": "application/schema+json;version=draft-07",
@@ -285,6 +468,259 @@
                 "required": [
                   "correlationId",
                   "gameMode"
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "payload"
+            ]
+          }
+        }
+      },
+      "createParty": {
+        "name": "create_party",
+        "title": "Create party",
+        "summary": "Create a party with you as its leader.",
+        "description": "Parties are formed after connecting and before `begin_search`. You receive a `PARTY_UPDATE` containing a `joinCode` to share with friends through your own channels. Creating a party cancels any search you had running on your own. All members must hold tickets for the same region.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "create_party"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          }
+        }
+      },
+      "joinParty": {
+        "name": "join_party",
+        "title": "Join party",
+        "summary": "Join a party using its join code.",
+        "description": "Every member receives a `PARTY_UPDATE`. A party that is currently searching cannot be joined. Joining cancels any search you had running on your own.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "join_party"
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "code"
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "payload"
+            ]
+          }
+        }
+      },
+      "leaveParty": {
+        "name": "leave_party",
+        "title": "Leave party",
+        "summary": "Leave your current party.",
+        "description": "You receive `PARTY_LEFT`. If you were the leader, the longest-standing remaining member becomes leader. If the party was searching, the search is cancelled for everyone (`PARTY_SEARCH_CANCELLED`).",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "leave_party"
+              }
+            },
+            "required": [
+              "action"
+            ]
+          }
+        }
+      },
+      "kickMember": {
+        "name": "kick_member",
+        "title": "Kick member",
+        "summary": "Remove a player from your party (leader only).",
+        "description": "The removed player receives `PARTY_LEFT` with reason `KICKED`. A running search is cancelled for everyone.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "kick_member"
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "userId"
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "payload"
+            ]
+          }
+        }
+      },
+      "promoteLeader": {
+        "name": "promote_leader",
+        "title": "Promote leader",
+        "summary": "Make another member the party leader (leader only).",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "promote_leader"
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "userId"
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "payload"
+            ]
+          }
+        }
+      },
+      "inviteToParty": {
+        "name": "invite_to_party",
+        "title": "Invite to party",
+        "summary": "Invite a player to your party by their `userId` (leader only).",
+        "description": "The player must be connected, in the same tenant, and not already in a party; they receive `PARTY_INVITE`. Invites expire after 2 minutes. If the invite can't be delivered you get `PARTY_INVITEE_UNAVAILABLE`, which deliberately doesn't say whether the player is offline or just busy. A party that is searching or starting can't invite.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "invite_to_party"
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "userId"
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "payload"
+            ]
+          }
+        }
+      },
+      "acceptInvite": {
+        "name": "accept_invite",
+        "title": "Accept invite",
+        "summary": "Join the party named by a `PARTY_INVITE` you received.",
+        "description": "Only works with a live invite (`PARTY_INVITE_NOT_FOUND` otherwise). Behaves like `join_party` from there.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "accept_invite"
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "partyId": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "partyId"
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "payload"
+            ]
+          }
+        }
+      },
+      "declineInvite": {
+        "name": "decline_invite",
+        "title": "Decline invite",
+        "summary": "Discard a `PARTY_INVITE` you received.",
+        "description": "Optional, since invites expire on their own. The inviter is not notified.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "decline_invite"
+              },
+              "payload": {
+                "type": "object",
+                "properties": {
+                  "partyId": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "partyId"
                 ]
               }
             },
@@ -384,11 +820,52 @@
           }
         }
       },
+      "searchStarted": {
+        "name": "SEARCH_STARTED",
+        "title": "Search started",
+        "summary": "Acknowledges that your search is registered and queued.",
+        "description": "Sent after `begin_search` succeeds; for ping-based game modes, after your `pong` completes the search. It carries the `gameMode` and `startedAt` (epoch seconds, the time your wait is measured from). When a party starts searching, every member receives it (with the `partyId`), not just the leader who sent `begin_search`. Repeating `begin_search` on a search that is already running sends it again, so a client that missed it can recover.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "SEARCH_STARTED"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "gameMode": {
+                    "type": "string"
+                  },
+                  "startedAt": {
+                    "type": "number"
+                  },
+                  "partyId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "gameMode",
+                  "startedAt"
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "data"
+            ]
+          }
+        }
+      },
       "error": {
         "name": "ERROR",
         "title": "Error",
         "summary": "Something went wrong handling a client message.",
-        "description": "Some codes are terminal and the server closes the connection after sending them: `BILLING_ACCESS_DENIED`, `TOKEN_QUOTA_EXCEEDED`, `WAITLIST_ACCESS_DENIED`, `PLAYER_ATTRIBUTE_REQUIRED`. Others (for example `GAME_MODE_NOT_FOUND`, `GAME_MODE_DISABLED`, `STALE_PONG`, `INVALID_MESSAGE`, `INTERNAL_ERROR`) leave the connection open. `TOKEN_QUOTA_EXCEEDED` means the tenant has used its matched player allowance for the current billing cycle: new searches are rejected, while players already in the queue and matches already made are unaffected.",
+        "description": "Some codes are terminal and the server closes the connection after sending them: `BILLING_ACCESS_DENIED`, `TOKEN_QUOTA_EXCEEDED`, `WAITLIST_ACCESS_DENIED`, `PLAYER_ATTRIBUTE_REQUIRED`. Others (for example `GAME_MODE_NOT_FOUND`, `GAME_MODE_DISABLED`, `STALE_PONG`, `SEARCH_START_FAILED`, `INVALID_MESSAGE`, `INTERNAL_ERROR`) leave the connection open, as do all party errors (`ALREADY_IN_PARTY`, `NOT_IN_PARTY`, `PARTY_NOT_FOUND`, `PARTY_MEMBER_NOT_FOUND`, `PARTY_FULL`, `PARTY_SEARCHING`, `NOT_PARTY_LEADER`, `PARTIES_NOT_ENABLED`, `PARTY_TOO_LARGE`, `PARTY_MEMBER_ATTRIBUTE_MISSING`, `PARTY_CHANGED`, `PARTY_INVITEE_UNAVAILABLE`, `PARTY_INVITE_NOT_FOUND`). `TOKEN_QUOTA_EXCEEDED` means the tenant has used its matched player allowance for the current billing cycle: new searches are rejected, while players already in the queue and matches already made are unaffected.",
         "contentType": "application/json",
         "payload": {
           "schemaFormat": "application/schema+json;version=draft-07",
@@ -452,6 +929,206 @@
                 },
                 "required": [
                   "correlationId"
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "data"
+            ]
+          }
+        }
+      },
+      "partyUpdate": {
+        "name": "PARTY_UPDATE",
+        "title": "Party update",
+        "summary": "The party's current state.",
+        "description": "Sent to every member whenever the party changes: someone joins or leaves, leadership changes, or the party starts or stops searching. Render from the full state rather than patching. `status` is `LOBBY`, `STARTING` (a ping-based party is measuring its members' latency; the `gameMode` is included) or `SEARCHING`. Once a party's search produces a match the party returns to `LOBBY`, so the same group can queue again; the players' `MATCH_FOUND` arrives separately.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "PARTY_UPDATE"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "party": {
+                    "type": "object",
+                    "properties": {
+                      "partyId": {
+                        "type": "string"
+                      },
+                      "joinCode": {
+                        "type": "string"
+                      },
+                      "leaderUserId": {
+                        "type": "string"
+                      },
+                      "members": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "userId": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "userId"
+                          ]
+                        }
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "LOBBY",
+                          "STARTING",
+                          "SEARCHING"
+                        ]
+                      },
+                      "gameMode": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "partyId",
+                      "joinCode",
+                      "leaderUserId",
+                      "members",
+                      "status"
+                    ]
+                  }
+                },
+                "required": [
+                  "party"
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "data"
+            ]
+          }
+        }
+      },
+      "partyLeft": {
+        "name": "PARTY_LEFT",
+        "title": "Party left",
+        "summary": "You are no longer in a party (you left, or were kicked).",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "PARTY_LEFT"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "partyId": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "LEFT",
+                      "KICKED"
+                    ]
+                  }
+                },
+                "required": [
+                  "partyId",
+                  "reason"
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "data"
+            ]
+          }
+        }
+      },
+      "partySearchCancelled": {
+        "name": "PARTY_SEARCH_CANCELLED",
+        "title": "Party search cancelled",
+        "summary": "The party's search was stopped before a match was made.",
+        "description": "Sent to the remaining members when the leader cancels, or when a member leaves, is kicked or disconnects while the party is searching or starting (a party cannot search short-handed), or with reason `START_FAILED` if the search couldn't be queued. A member who disconnects is removed from the party and must rejoin with the join code after reconnecting.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "PARTY_SEARCH_CANCELLED"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "LEADER_CANCELLED",
+                      "MEMBER_LEFT",
+                      "MEMBER_KICKED",
+                      "MEMBER_DISCONNECTED",
+                      "START_FAILED"
+                    ]
+                  },
+                  "userId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "reason"
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "data"
+            ]
+          }
+        }
+      },
+      "partyInvite": {
+        "name": "PARTY_INVITE",
+        "title": "Party invite",
+        "summary": "You were invited to a party.",
+        "description": "Carries the `partyId` to pass to `accept_invite` or `decline_invite`, and who invited you. Valid for 2 minutes.",
+        "contentType": "application/json",
+        "payload": {
+          "schemaFormat": "application/schema+json;version=draft-07",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "action": {
+                "type": "string",
+                "const": "PARTY_INVITE"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "partyId": {
+                    "type": "string"
+                  },
+                  "fromUserId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "partyId",
+                  "fromUserId"
                 ]
               }
             },

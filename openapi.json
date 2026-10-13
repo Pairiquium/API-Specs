@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Pairiquium Integration API",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "license": {
       "name": "Apache 2.0",
       "identifier": "Apache-2.0"
@@ -248,6 +248,10 @@
                 "Ping": {
                   "description": "Measured round-trip time in ms; present when the game mode matches on ping.",
                   "type": "number"
+                },
+                "PartyId": {
+                  "description": "Present when the player queued as part of a party; players sharing a `PartyId` queued together.",
+                  "type": "string"
                 }
               },
               "required": [
